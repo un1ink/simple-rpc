@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RpcMessageEncode extends MessageToByteEncoder<RpcMessage> {
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(0);
 
+    /** 按照自定义协议编码 */
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcMessage rpcMessage, ByteBuf out) {
         try {
@@ -44,19 +45,16 @@ public class RpcMessageEncode extends MessageToByteEncoder<RpcMessage> {
             out.writeByte(rpcMessage.getCodec());
             out.writeByte(CompressTypeEnum.GZIP.getCode());
             out.writeInt(ATOMIC_INTEGER.getAndIncrement());
-            // build full length
+
             byte[] bodyBytes = null;
             int fullLength = RpcConstants.HEAD_LENGTH;
-            // if messageType is not heartbeat message,fullLength = head length + body length
             if (messageType != RpcConstants.HEARTBEAT_REQUEST_TYPE
                     && messageType != RpcConstants.HEARTBEAT_RESPONSE_TYPE) {
-                // serialize the object
                 String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
                 log.info("codec name: [{}] ", codecName);
                 Serializer serializer = ExtensionLoader.getExtensionLoader(Serializer.class)
                         .getExtension(codecName);
                 bodyBytes = serializer.serialize(rpcMessage.getData());
-                // compress the bytes
                 String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
                 Compress compress = ExtensionLoader.getExtensionLoader(Compress.class)
                         .getExtension(compressName);

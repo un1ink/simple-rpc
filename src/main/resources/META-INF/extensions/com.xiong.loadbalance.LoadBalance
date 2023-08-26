@@ -1,1 +1,1 @@
-loadBalance=com.xiong.loadbalance.loadbalancer.RandomLoadBalance
+loadBalance=com.un1ink.loadbalance.loadbalancer.RandomLoadBalance

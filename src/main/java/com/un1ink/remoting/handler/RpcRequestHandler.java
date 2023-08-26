@@ -18,21 +18,13 @@ public class RpcRequestHandler {
         serviceProvider = SingletonFactory.getInstance(ZkServiceProviderImpl.class);
     }
 
-    /**
-     * Processing rpcRequest: call the corresponding method, and then return the method
-     */
+    /** 服务端处理客户端请求 */
     public Object handle(RpcRequest rpcRequest) {
         Object service = serviceProvider.getService(rpcRequest.getRpcServiceName());
         return invokeTargetMethod(rpcRequest, service);
     }
 
-    /**
-     * get method execution results
-     *
-     * @param rpcRequest client request
-     * @param service    service object
-     * @return the result of the target method execution
-     */
+    /** 通过反射调用服务处理请求 */
     private Object invokeTargetMethod(RpcRequest rpcRequest, Object service) {
         Object result;
         try {

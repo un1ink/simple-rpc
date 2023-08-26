@@ -13,9 +13,8 @@ public class ChannelProvider {
     public ChannelProvider(){
         this.channelMap = new ConcurrentHashMap<>();
     }
-    /**
-     * get Channel by ip
-     */
+
+    /** 尝试复用缓存池中的channel */
     public Channel get(InetSocketAddress inetSocketAddress){
         String key = inetSocketAddress.toString();
         if(channelMap.containsKey(key)){

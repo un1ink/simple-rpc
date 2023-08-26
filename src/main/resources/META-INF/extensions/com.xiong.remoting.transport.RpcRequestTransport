@@ -1,2 +1,2 @@
-netty=com.xiong.remoting.transport.netty.client.NettyRpcClient
-socket=com.xiong.remoting.transport.socket.SocketRpcClient
+netty=com.un1ink.remoting.transport.netty.client.NettyRpcClient
+socket=com.un1ink.remoting.transport.socket.SocketRpcClient

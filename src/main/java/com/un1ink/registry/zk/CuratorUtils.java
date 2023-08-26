@@ -27,7 +27,7 @@ public class CuratorUtils {
     private static final int MAX_RETRIES = 3;
 
     public static final String DEFAULT_ZOOKEEPER_ADDRESS = "127.0.0.1:2181";
-    public static final String ZK_REGISTER_ROOT_PATH = "/my-rpc-myself";
+    public static final String ZK_REGISTER_ROOT_PATH = "/simple_rpc";
     private static final Map<String, List<String>> SERVICE_ADDRESS_MAP = new ConcurrentHashMap<String, List<String>>();
     public static final Set<String> RESGISTERED_PATH_SET = ConcurrentHashMap.newKeySet();
 
@@ -35,12 +35,13 @@ public class CuratorUtils {
 
     CuratorUtils(){}
 
-    public static void createPersistentNode(CuratorFramework zkClient, String path){
+    /** 创建临时节点存储服务信息，会话断开删除 */
+    public static void createEphemeralNode(CuratorFramework zkClient, String path){
         try {
             if(RESGISTERED_PATH_SET.contains(path) || zkClient.checkExists().forPath(path) != null){
                 log.info("The node already exist. The node is : [{}]", path);
             } else {
-                zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path);
+                zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
                 log.info("The node was created successfully, The node is [{}]", path);
             }
             RESGISTERED_PATH_SET.add(path);
@@ -49,6 +50,7 @@ public class CuratorUtils {
         }
     }
 
+    /** 获取子节点，构建服务列表*/
     public static List<String> getChildrenNodes(CuratorFramework zkClient, String rpcServiceName){
         if(SERVICE_ADDRESS_MAP.containsKey(rpcServiceName)){
             return SERVICE_ADDRESS_MAP.get(rpcServiceName);
@@ -58,7 +60,7 @@ public class CuratorUtils {
             try {
                 result = zkClient.getChildren().forPath(servicePath);
                 SERVICE_ADDRESS_MAP.put(servicePath, result);
-                registerWatcher(rpcServiceName, zkClient);
+                registerListener(rpcServiceName, zkClient);
             } catch (Exception e) {
                 log.error("get children nodes for path [{}] fail", servicePath);
             }
@@ -67,11 +69,12 @@ public class CuratorUtils {
         }
     }
 
-    private static void registerWatcher(String rpcServiceName, CuratorFramework zkClient) {
+    /** 监听节点状态变动 */
+    private static void registerListener(String rpcServiceName, CuratorFramework zkClient) {
         try {
             String servicePath = ZK_REGISTER_ROOT_PATH + "/" + rpcServiceName;
             PathChildrenCache pathChildrenCache = new PathChildrenCache(zkClient, servicePath, true);
-            PathChildrenCacheListener pathChildrenCacheListener = (curatorFramework, pathChildremCacheEvent) -> {
+            PathChildrenCacheListener pathChildrenCacheListener = (curatorFramework, pathChildrenCacheEvent) -> {
                 List<String> serviceAddress = curatorFramework.getChildren().forPath(servicePath);
                 SERVICE_ADDRESS_MAP.put(rpcServiceName, serviceAddress);
             };
@@ -83,7 +86,9 @@ public class CuratorUtils {
 
     }
 
+    /** 创建zkClient对象 */
     public static CuratorFramework getZkClient(){
+        // 从配置文件中读取配置信息
         Properties properties = PropertiesFileUtil.readPropertiesFile(RpcConfigEnum.RPC_CONFIG_PATH.getPropertyValue());
         String zookeeperAddress = (properties != null && properties.getProperty(RpcConfigEnum.ZK_ADDRESS.getPropertyValue()) != null)
                 ? properties.getProperty(RpcConfigEnum.ZK_ADDRESS.getPropertyValue())
@@ -109,6 +114,7 @@ public class CuratorUtils {
 
     }
 
+    /** 清除注册中心的数据 */
     public static void clearRegistry(CuratorFramework zkClient, InetSocketAddress inetSocketAddress) {
         RESGISTERED_PATH_SET.stream().parallel().forEach(p -> {
             try {

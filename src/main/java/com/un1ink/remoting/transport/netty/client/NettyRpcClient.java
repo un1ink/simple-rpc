@@ -25,6 +25,7 @@ import com.un1ink.remoting.transport.RpcRequestTransport;
 import com.un1ink.remoting.transport.codec.RpcMessageEncode;
 import java.net.InetSocketAddress;
 import java.util.concurrent.*;
+
 @Slf4j
 public final class NettyRpcClient implements RpcRequestTransport {
     private final ServiceDiscovery serviceDiscovery;
@@ -34,20 +35,16 @@ public final class NettyRpcClient implements RpcRequestTransport {
     private final EventLoopGroup eventLoopGroup;
 
     public NettyRpcClient() {
-        // initialize resources such as EventLoopGroup, Bootstrap
         eventLoopGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .handler(new LoggingHandler(LogLevel.INFO))
-                //  The timeout period of the connection.
-                //  If this time is exceeded or the connection cannot be established, the connection fails.
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ChannelPipeline p = ch.pipeline();
-                        // If no data is sent to the server within 15 seconds, a heartbeat request is sent
                         p.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                         p.addLast(new RpcMessageEncode());
                         p.addLast(new RpcMessageDecode());
@@ -59,12 +56,7 @@ public final class NettyRpcClient implements RpcRequestTransport {
         this.channelProvider = SingletonFactory.getInstance(ChannelProvider.class);
     }
 
-    /**
-     * connect server and get the channel ,so that you can send rpc message to server
-     *
-     * @param inetSocketAddress server address
-     * @return the channel
-     */
+    /** 客户端连接服务端 */
     @SneakyThrows
     public Channel doConnect(InetSocketAddress inetSocketAddress) {
         System.out.println("Client连接");
@@ -80,18 +72,14 @@ public final class NettyRpcClient implements RpcRequestTransport {
         return completableFuture.get();
     }
 
+    /** 发送rpc请求 */
     @Override
     public Object sendRpcRequest(RpcRequest rpcRequest) {
-        System.out.println("Client调用sendRpcRequest");
-
-        // build return value
+        log.info(" Client sendRpcRequest: [{}]", rpcRequest.toString());
         CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
-        // get server address
         InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest);
-        // get  server address related channel
         Channel channel = getChannel(inetSocketAddress);
         if (channel.isActive()) {
-            // put unprocessed request
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
             RpcMessage rpcMessage = RpcMessage.builder().data(rpcRequest)
                     .codec(SerializationTypeEnum.HESSIAN.getCode())
@@ -100,9 +88,6 @@ public final class NettyRpcClient implements RpcRequestTransport {
             channel.writeAndFlush(rpcMessage).addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
                     log.info("client send message: [{}]", rpcMessage);
-                    System.out.println("client send message:" + rpcMessage);
-
-//                    System.out.println("client send message:"+rpcMessage);
                 } else {
                     future.channel().close();
                     resultFuture.completeExceptionally(future.cause());
@@ -116,11 +101,11 @@ public final class NettyRpcClient implements RpcRequestTransport {
         return resultFuture;
     }
 
+    /** 获取服务的channel */
     public Channel getChannel(InetSocketAddress inetSocketAddress) {
-//        System.out.println("Client调用getChannel");
         Channel channel = channelProvider.get(inetSocketAddress);
         if (channel == null) {
-            System.out.println("无Channel Client 触发 doConnect");
+            log.info("Client do connect service.");
             channel = doConnect(inetSocketAddress);
             channelProvider.set(inetSocketAddress, channel);
         }

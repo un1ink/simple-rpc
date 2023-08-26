@@ -27,7 +27,6 @@ public final class ThreadPoolFactoryUtil {
 
     public static ExecutorService createCustomThreadPoolIfAbsent(CustomThreadPoolConfig customThreadPoolConfig, String threadNamePrefix, Boolean daemon) {
         ExecutorService threadPool = THREAD_POOLS.computeIfAbsent(threadNamePrefix, k -> createThreadPool(customThreadPoolConfig, threadNamePrefix, daemon));
-        // 如果 threadPool 被 shutdown 的话就重新创建一个
         if (threadPool.isShutdown() || threadPool.isTerminated()) {
             THREAD_POOLS.remove(threadNamePrefix);
             threadPool = createThreadPool(customThreadPoolConfig, threadNamePrefix, daemon);
@@ -36,23 +35,7 @@ public final class ThreadPoolFactoryUtil {
         return threadPool;
     }
 
-    /**
-     * shutDown 所有线程池
-     */
-    public static void shutDownAllThreadPool() {
-        log.info("call shutDownAllThreadPool method");
-        THREAD_POOLS.entrySet().parallelStream().forEach(entry -> {
-            ExecutorService executorService = entry.getValue();
-            executorService.shutdown();
-            log.info("shut down thread pool [{}] [{}]", entry.getKey(), executorService.isTerminated());
-            try {
-                executorService.awaitTermination(10, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("Thread pool never terminated");
-                executorService.shutdownNow();
-            }
-        });
-    }
+
 
     private static ExecutorService createThreadPool(CustomThreadPoolConfig customThreadPoolConfig, String threadNamePrefix, Boolean daemon) {
         ThreadFactory threadFactory = createThreadFactory(threadNamePrefix, daemon);
@@ -62,10 +45,10 @@ public final class ThreadPoolFactoryUtil {
     }
 
     /**
-     * 创建 ThreadFactory 。如果threadNamePrefix不为空则使用自建ThreadFactory，否则使用defaultThreadFactory
+     * 创建 ThreadFactory
      *
      * @param threadNamePrefix 作为创建的线程名字的前缀
-     * @param daemon           指定是否为 Daemon Thread(守护线程)
+     * @param daemon           指定是否为 Daemon Thread
      * @return ThreadFactory
      */
     public static ThreadFactory createThreadFactory(String threadNamePrefix, Boolean daemon) {

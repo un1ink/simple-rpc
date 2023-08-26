@@ -8,16 +8,14 @@ import com.un1ink.remoting.transport.netty.server.NettyRpcServer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 
-@RpcScan(basePackage = {"com.xiong"})
+@RpcScan(basePackage = {"com.un1ink"})
 public class NettyServerMain {
     public static void main(String[] args) {
-        // Register service via annotation
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(NettyServerMain.class);
         NettyRpcServer nettyRpcServer = (NettyRpcServer) applicationContext.getBean("nettyRpcServer");
-        // Register service manually
-        HelloService helloService2 = new HelloServiceImpl();
+        HelloService helloService = new HelloServiceImpl();
         RpcServiceConfig rpcServiceConfig = RpcServiceConfig.builder()
-                .group("test1").version("version1").service(helloService2).build();
+                .group("test1").version("v1").service(helloService).build();
         nettyRpcServer.registerService(rpcServiceConfig);
         nettyRpcServer.start();
     }

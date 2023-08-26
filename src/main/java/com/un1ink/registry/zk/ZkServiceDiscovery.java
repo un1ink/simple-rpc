@@ -7,6 +7,7 @@ import com.un1ink.enums.RpcErrorMessageEnum;
 import com.un1ink.exception.RpcException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.client.ZKClientConfig;
 import org.springframework.util.CollectionUtils;
 import com.un1ink.registry.ServiceDiscovery;
 import com.un1ink.remoting.dto.RpcRequest;
@@ -16,15 +17,15 @@ import java.util.List;
 @Slf4j
 public class ZkServiceDiscovery implements ServiceDiscovery {
     private final LoadBalance loadBalance;
+    private final CuratorFramework curatorFramework;
     public ZkServiceDiscovery(){
         this.loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(LoadBalanceEnum.LOADBALANCE.getName());
+        this.curatorFramework = CuratorUtils.getZkClient();
     }
 
     @Override
     public InetSocketAddress lookupService(RpcRequest rpcRequest) {
         String serviceName = rpcRequest.getRpcServiceName();
-        CuratorFramework curatorFramework = CuratorUtils.getZkClient();
-        // todo zkClient 可以设置为成员变量，便于监听状态
         List<String> serviceList = CuratorUtils.getChildrenNodes(curatorFramework, serviceName);
         if(CollectionUtils.isEmpty(serviceList)){
             throw new RpcException(RpcErrorMessageEnum.SERVICE_CAN_NOT_BE_FOUND, serviceName);

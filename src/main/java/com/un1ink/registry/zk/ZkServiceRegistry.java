@@ -6,11 +6,15 @@ import com.un1ink.registry.ServiceRegistry;
 import java.net.InetSocketAddress;
 
 public class ZkServiceRegistry implements ServiceRegistry {
+
+    private final CuratorFramework curatorFramework;
+
+    public ZkServiceRegistry(){
+        this.curatorFramework = CuratorUtils.getZkClient();
+    }
     @Override
     public void registerService(String rpcServiceName, InetSocketAddress inetSocketAddress) {
         String servicePath = CuratorUtils.ZK_REGISTER_ROOT_PATH + "/" + rpcServiceName + inetSocketAddress.toString();
-        CuratorFramework curatorFramework = CuratorUtils.getZkClient();
-        // todo 改为临时节点，连接断开时删除
-        CuratorUtils.createPersistentNode(curatorFramework, servicePath);
+        CuratorUtils.createEphemeralNode(curatorFramework, servicePath);
     }
 }

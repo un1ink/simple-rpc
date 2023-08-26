@@ -29,7 +29,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
         serviceRegistry = ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension(ServiceRegistryEnum.ZK.getName());
     }
 
-
+    /** 添加服务信息至缓存中 */
     @Override
     public void addService(RpcServiceConfig rpcServiceConfig) {
         String rpcServiceName = rpcServiceConfig.getRpcServiceName();
@@ -41,6 +41,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
         log.info("Add service : {} and interfaces : {}", rpcServiceName, rpcServiceConfig.getService().getClass().getInterfaces());
     }
 
+
     @Override
     public Object getService(String rpcServiceName) {
         Object service = serviceMap.get(rpcServiceName);
@@ -50,6 +51,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
         return service;
     }
 
+    /** 服务端发布服务信息，注册到本地缓存和注册中心 */
     @Override
     public void publishService(RpcServiceConfig rpcServiceConfig) {
         try {

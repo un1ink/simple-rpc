@@ -27,6 +27,8 @@ public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
         super(maxFrameLength, i, i1, i2, i3);
     }
 
+
+    /** 按照自定义协议解码 */
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         Object decoded = super.decode(ctx, in);
@@ -46,8 +48,8 @@ public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
         return decoded;
     }
 
+    /** 检查前4位魔数 */
     private void checkMagicNumber(ByteBuf in) {
-        // read the first 4 bit, which is the magic number, and compare
         int len = RpcConstants.MAGIC_NUMBER.length;
         byte[] tmp = new byte[len];
         in.readBytes(tmp);

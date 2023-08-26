@@ -51,11 +51,11 @@ public class RpcClientProxy implements InvocationHandler {
         if(rpcRequestTransport instanceof NettyRpcClient){
             CompletableFuture<RpcResponse<Object>> completableFuture = (CompletableFuture<RpcResponse<Object>>) rpcRequestTransport.sendRpcRequest(rpcRequest);
             rpcResponse = completableFuture.get();
-            System.out.println("yes");
+            System.out.println("NettyRpcClient invoke.");
         }
         if(rpcRequestTransport instanceof SocketRpcClient){
             rpcResponse = (RpcResponse<Object>) rpcRequestTransport.sendRpcRequest(rpcRequest);
-            System.out.println("no");
+            System.out.println("SocketRpcClient invoke.");
 
         }
         this.check(rpcResponse, rpcRequest);

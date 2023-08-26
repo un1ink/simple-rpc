@@ -10,12 +10,10 @@ import lombok.*;
 @ToString
 public class RpcMessage {
 
-
     private byte messageType;
     private byte codec;
     private byte compress;
     private int requestId;
-
     private Object data;
 
 }

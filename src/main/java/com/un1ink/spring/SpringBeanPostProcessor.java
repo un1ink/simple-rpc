@@ -27,27 +27,21 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
     private final ServiceProvider serviceProvider;
     private final RpcRequestTransport rpcClient;
 
+    /** 加载服务 */
     public SpringBeanPostProcessor() {
-
         this.rpcClient = ExtensionLoader.getExtensionLoader(RpcRequestTransport.class).getExtension(RpcRequestTransportEnum.NETTY.getName());
-        if(this.rpcClient == null){
-            System.out.println("bad init!");
-        }
         this.serviceProvider = SingletonFactory.getInstance(ZkServiceProviderImpl.class);
-
         ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension(ServiceRegistryEnum.ZK.getName());
-
 
     }
 
+    /** 创建bean服务对象 */
     @SneakyThrows
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (bean.getClass().isAnnotationPresent(RpcService.class)) {
             log.info("[{}] is annotated with  [{}]", bean.getClass().getName(), RpcService.class.getCanonicalName());
-            // get RpcService annotation
             RpcService rpcService = bean.getClass().getAnnotation(RpcService.class);
-            // build RpcServiceProperties
             RpcServiceConfig rpcServiceConfig = RpcServiceConfig.builder()
                     .group(rpcService.group())
                     .version(rpcService.version())
@@ -57,6 +51,7 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
         return bean;
     }
 
+    /** 根据RpcReference注解信息创建客户端代理对象 */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> targetClass = bean.getClass();
@@ -64,24 +59,13 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
         System.out.println("Bean AfterInitialization :"+ beanName);
 
         for (Field declaredField : declaredFields) {
-//            Anno anno = declaredField.getAnnotation(Anno.class);
-//            if(anno != null){
-//                System.out.println("this is new annotation.");
-//            }
-
             RpcReference rpcReference = declaredField.getAnnotation(RpcReference.class);
-//            if(beanName.equals("helloController") ){
-//                System.out.println(declaredField);
-//                System.out.println(rpcReference == null);
-//            }
+
             if (rpcReference != null) {
-//                System.out.println("获取RpcReference注解成功 :" + beanName);
+                log.info("获取RpcReference注解成功 :" + beanName);
                 RpcServiceConfig rpcServiceConfig = RpcServiceConfig.builder()
                         .group(rpcReference.group())
                         .version(rpcReference.version()).build();
-                if(rpcClient == null){
-                    System.out.println("look this.");
-                }
                 RpcClientProxy rpcClientProxy = new RpcClientProxy(rpcClient, rpcServiceConfig);
                 Object clientProxy = rpcClientProxy.getProxy(declaredField.getType());
                 declaredField.setAccessible(true);

@@ -16,17 +16,8 @@ public class RpcResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 12345678910L;
     private String requestId;
-    /**
-     * response code
-     */
     private Integer code;
-    /**
-     * response message
-     */
     private String message;
-    /**
-     * response body
-     */
     private T data;
 
     public static <T> RpcResponse<T> success(T data, String requestId) {

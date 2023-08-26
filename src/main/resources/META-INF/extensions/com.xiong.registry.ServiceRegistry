@@ -1,1 +1,1 @@
-zk=com.xiong.registry.zk.ZkServiceRegistry
+zk=com.un1ink.registry.zk.ZkServiceRegistry

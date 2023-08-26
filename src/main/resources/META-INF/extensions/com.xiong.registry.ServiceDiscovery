@@ -1,1 +1,1 @@
-zk=com.xiong.registry.zk.ZkServiceDiscovery
+zk=com.un1ink.registry.zk.ZkServiceDiscovery
