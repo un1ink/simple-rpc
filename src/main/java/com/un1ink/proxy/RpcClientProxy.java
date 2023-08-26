@@ -34,8 +34,6 @@ public class RpcClientProxy implements InvocationHandler {
         return  (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]{clazz}, this);
     }
 
-
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.info("invoked method : [{}]", method.getName());
@@ -51,12 +49,12 @@ public class RpcClientProxy implements InvocationHandler {
         if(rpcRequestTransport instanceof NettyRpcClient){
             CompletableFuture<RpcResponse<Object>> completableFuture = (CompletableFuture<RpcResponse<Object>>) rpcRequestTransport.sendRpcRequest(rpcRequest);
             rpcResponse = completableFuture.get();
-            System.out.println("NettyRpcClient invoke.");
+            log.info("NettyRpcClient invoke.");
+
         }
         if(rpcRequestTransport instanceof SocketRpcClient){
             rpcResponse = (RpcResponse<Object>) rpcRequestTransport.sendRpcRequest(rpcRequest);
-            System.out.println("SocketRpcClient invoke.");
-
+            log.info("SocketRpcClient invoke.");
         }
         this.check(rpcResponse, rpcRequest);
         return rpcResponse.getData();

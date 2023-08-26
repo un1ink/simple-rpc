@@ -9,7 +9,6 @@ import io.protostuff.runtime.RuntimeSchema;
 
 public class ProtostuffSerializer implements Serializer {
 
-
     private static final LinkedBuffer BUFFER = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
 
     @Override

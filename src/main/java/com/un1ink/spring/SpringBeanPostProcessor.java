@@ -56,7 +56,6 @@ public class SpringBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> targetClass = bean.getClass();
         Field[] declaredFields = targetClass.getDeclaredFields();
-        System.out.println("Bean AfterInitialization :"+ beanName);
 
         for (Field declaredField : declaredFields) {
             RpcReference rpcReference = declaredField.getAnnotation(RpcReference.class);

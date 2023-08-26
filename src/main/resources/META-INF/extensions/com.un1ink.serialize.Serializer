@@ -1,0 +1,3 @@
+kyro=com.un1ink.serialize.kyro.KryoSerializer
+# protostuff=com.un1ink.serialize.protostuff.ProtostuffSerializer
+# hessian=com.un1ink.serialize.hessian.HessianSerializer

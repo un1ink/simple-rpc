@@ -110,6 +110,7 @@ public final class ExtensionLoader<T> {
     }
 
     private Map<String, Class<?>> getExtensionClasses() {
+        log.info("load extension classes.");
         Map<String, Class<?>> classes = cachedClasses.get();
         // 双检锁
         if (classes == null) {
@@ -132,6 +133,7 @@ public final class ExtensionLoader<T> {
      */
     private void loadDirectory(Map<String, Class<?>> extensionClasses) {
         String fileName = ExtensionLoader.SERVICE_DIRECTORY + type.getName();
+        log.info("loading fileName: " + fileName);
         try {
             Enumeration<URL> urls;
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
@@ -141,6 +143,8 @@ public final class ExtensionLoader<T> {
                     URL resourceUrl = urls.nextElement();
                     loadResource(extensionClasses, classLoader, resourceUrl);
                 }
+            } else {
+                log.info("urls is null.");
             }
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -170,6 +174,7 @@ public final class ExtensionLoader<T> {
                         // ei左侧为服务名，ei右侧为服务类名
                         String name = line.substring(0, ei).trim();
                         String clazzName = line.substring(ei + 1).trim();
+                        log.info("load extension of name '" + name + "' and class name '" + clazzName + "'.");
                         if (name.length() > 0 && clazzName.length() > 0) {
                             Class<?> clazz = classLoader.loadClass(clazzName);
                             extensionClasses.put(name, clazz);

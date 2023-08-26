@@ -14,6 +14,5 @@ public class SocketClientMain {
         RpcClientProxy rpcClientProxy = new RpcClientProxy(rpcRequestTransport, rpcServiceConfig);
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
         String hello = helloService.hello(new Hello("111", "222"));
-        System.out.println(hello);
     }
 }

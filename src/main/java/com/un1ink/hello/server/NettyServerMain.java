@@ -15,7 +15,7 @@ public class NettyServerMain {
         NettyRpcServer nettyRpcServer = (NettyRpcServer) applicationContext.getBean("nettyRpcServer");
         HelloService helloService = new HelloServiceImpl();
         RpcServiceConfig rpcServiceConfig = RpcServiceConfig.builder()
-                .group("test1").version("v1").service(helloService).build();
+                .group("group1").version("v1").service(helloService).build();
         nettyRpcServer.registerService(rpcServiceConfig);
         nettyRpcServer.start();
     }

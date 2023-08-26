@@ -60,6 +60,7 @@ public final class NettyRpcClient implements RpcRequestTransport {
     @SneakyThrows
     public Channel doConnect(InetSocketAddress inetSocketAddress) {
         System.out.println("Client连接");
+        log.info("Client try to connect service.");
         CompletableFuture<Channel> completableFuture = new CompletableFuture<>();
         bootstrap.connect(inetSocketAddress).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
@@ -82,7 +83,7 @@ public final class NettyRpcClient implements RpcRequestTransport {
         if (channel.isActive()) {
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
             RpcMessage rpcMessage = RpcMessage.builder().data(rpcRequest)
-                    .codec(SerializationTypeEnum.HESSIAN.getCode())
+                    .codec(SerializationTypeEnum.KYRO.getCode())
                     .compress(CompressTypeEnum.GZIP.getCode())
                     .messageType(RpcConstants.REQUEST_TYPE).build();
             channel.writeAndFlush(rpcMessage).addListener((ChannelFutureListener) future -> {
